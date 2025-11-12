@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Golden Tee League Standings</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>2025–26 Celina Moose Golden Tee Golf</h1>
+      <h2>Season 1 Standings</h2>
+      <div class="controls">
+        <label for="sort-mode">Sort by:</label>
+        <select id="sort-mode">
+          <option value="net" selected>Net Score</option>
+          <option value="total">Total Score</option>
+        </select>
+      </div>
+    </header>
+
+    <table id="league-table">
+    <thead>
+        <tr>
+        <th>Rank</th>
+        <th>Player</th>
+        <th>Handicap</th>
+        <th>Total</th>
+        <th>Net</th>
+        </tr>
+    </thead>
+    <tbody id="league-body">
+        <!-- JS renders here -->
+    </tbody>
+    </table>
+
+<section id="weekly-summary">
+  <h3 id="summary-title"></h3>
+  <div id="summary-content"></div>
+</section>
+
+
+    <section id="weekly-summary">
+        <h3 id="summary-title"></h3>
+        <div id="summary-content"></div>
+    </section>
+
+    <footer>
+      <p>Handicaps will be established after Week 3 and scores will be adjusted accordingly.</p>
+    </footer>
+  </div>
+  
+  <script src="js/summaries.js"></script>
+  <script src="js/players.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

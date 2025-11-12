@@ -1,0 +1,115 @@
+body {
+  font-family: system-ui, sans-serif;
+  background: #f6f8fa;
+  color: #222;
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: 800px;
+  margin: auto;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+header {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+h1 {
+  margin: 0;
+  color: #006400;
+}
+
+h2 {
+  margin: 4px 0 16px;
+  font-weight: 400;
+  color: #333;
+}
+
+.controls {
+  margin-bottom: 1rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+thead {
+  background: #e6f4ea;
+  color: #333;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+tbody tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+footer {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: #555;
+  text-align: center;
+}
+
+/* --- Responsive Table Tweaks --- */
+@media (max-width: 700px) {
+  th, td {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+  .player-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .toggle-btn {
+    margin-top: 4px;
+  }
+}
+
+/* --- Expand/Collapse Styling --- */
+.player-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggle-btn {
+  background: #006400;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.2s;
+}
+
+.toggle-btn:hover {
+  background: #038e03;
+}
+
+.scores-list {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  background: #f0f8f4;
+  border-left: 3px solid #006400;
+  border-radius: 4px;
+  padding: 6px 8px;
+  transition: max-height 0.3s ease;
+}
+
+.scores-list.hidden {
+  display: none;
+}
+
