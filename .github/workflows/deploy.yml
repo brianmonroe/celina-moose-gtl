@@ -1,0 +1,49 @@
+name: Deploy Celina Moose GTL
+
+# Trigger on all pushes for previews + production deployments
+on:
+  push:
+    branches:
+      - main
+      - '**'   # deploy all feature branches as previews
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Cache-busting: replace ?v=DEV with GitHub run number
+      - name: Insert cache-busting version
+        run: |
+          VERSION=${GITHUB_RUN_NUMBER}
+          echo "Using cache-busting VERSION=$VERSION"
+          sed -i "s?v=DEV?v=$VERSION?g" index.html
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: "."
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy-pages.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deploy-pages
+        uses: actions/deploy-pages@v2
