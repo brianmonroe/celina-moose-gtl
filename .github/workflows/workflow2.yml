@@ -1,0 +1,50 @@
+name: Deploy Celina Moose GTL
+
+on:
+  push:
+    branches:
+      - main
+      - '**'   # Enable preview deploys for all feature branches
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Insert cache-busting version
+        run: |
+          VERSION=${GITHUB_RUN_NUMBER}
+          echo "Applying cache-busting VERSION=$VERSION"
+          sed -i "s?v=DEV?v=$VERSION?g" index.html
+
+      # ⬇⬇⬇ IMPORTANT — updated to v4 (not v3)
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "."
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy-pages.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      # ⬇⬇⬇ IMPORTANT — updated to v4
+      - name: Deploy to GitHub Pages
+        id: deploy-pages
+        uses: actions/deploy-pages@v4
