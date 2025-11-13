@@ -63,6 +63,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("summary-title").textContent = latest.title;
     document.getElementById("summary-content").innerHTML = latest.content.trim();
+
+    // NEW: Output awards for that week
+    renderWeeklyAwards(latest.week);
   }
   renderSummary();
+
+  function renderWeeklyAwards(weekNumber) {
+  const awardsDiv = document.getElementById("weekly-awards");
+
+  // Collect valid scores for the requested week
+  const weekScores = players
+    .map(p => {
+      const score = p.scores[weekNumber - 1]; // weekNumber is 1-based
+      return score != null ? { name: p.name, score } : null;
+    })
+    .filter(Boolean); // remove null entries
+
+  if (!weekScores.length) {
+    awardsDiv.innerHTML = "";
+    return;
+  }
+
+  // Determine low and high scores
+  const lowMan  = weekScores.reduce((a, b) => (b.score < a.score ? b : a));
+  const highMan = weekScores.reduce((a, b) => (b.score > a.score ? b : a));
+
+  awardsDiv.innerHTML = `
+    <h3>Weekly Awards</h3>
+    <p><strong>🏆 LOW-MAN AWARD:</strong> ${lowMan.name} (${lowMan.score})</p>
+    <p><strong>🤡 HIGH-MAN AWARD:</strong> ${highMan.name} (${highMan.score})</p>
+  `;
+}
+
 });

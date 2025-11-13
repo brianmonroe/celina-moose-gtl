@@ -35,6 +35,34 @@ h1 {
   }
 }
 
+h2, h3, h4 {
+  font-family: "Bangers", sans-serif;
+  color: #333;
+  letter-spacing: 1px;
+}
+
+h4 {
+  font-size: 2em;
+  margin: 0;
+}
+
+.signature {
+  font-family: "Shadows Into Light", cursive;
+  font-weight: 700;
+  font-style: normal;
+  margin: 0;
+  font-size: 1.6em;
+}
+
+.title {
+  font-family: "Oswald", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  text-transform: uppercase;
+  margin: 0;
+}
+
 .controls {
   margin-bottom: 1rem;
 }
