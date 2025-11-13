@@ -1,7 +1,7 @@
 const weeklySummaries = [
   {
     week: 2,
-    title: "Week 2: Staugler Stays Hot, Monroe Finds Momentum",
+    title: "Week 2 News: Staugler Stays Hot, Monroe Finds Momentum",
     content: `
       <p>The second week of the Golden Tee League brought more fireworks as <b>CJ Staugler</b> continued
       his hot streak, following up last week’s 54 with a sharp 49 that kept him atop the leaderboard.

@@ -21,14 +21,18 @@ header {
 }
 
 h1 {
+  font-family: "Bangers", sans-serif;
+  font-size: 3rem;
+  color: #006400; /* your league green */
+  letter-spacing: 2px;
   margin: 0;
-  color: #006400;
 }
 
-h2 {
-  margin: 4px 0 16px;
-  font-weight: 400;
-  color: #333;
+@media (max-width: 600px) {
+  h1 {
+    font-size: 2.2rem;
+    text-align: center;
+  }
 }
 
 .controls {
