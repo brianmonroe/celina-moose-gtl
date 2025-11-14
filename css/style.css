@@ -1,12 +1,24 @@
 body {
   font-family: system-ui, sans-serif;
-  background: #f6f8fa;
   color: #222;
   margin: 0;
-  padding: 20px;
+  padding: 20px 20px 400px 20px;
+  background-color: #ede9d3; /* soft tan/cream behind the image */
+  background-image: url("../img/bg-003.png"); /* Replace with your image path */
+  background-size: 100% auto;
+  background-repeat: no-repeat; /* Prevents the image from repeating */
+  background-position: center bottom; /* Aligns the image horizontally to the center and vertically to the bottom */
+}
+
+@media (max-width: 600px) {
+  body {
+    padding: 20px 20px 200px 20px;
+  }
 }
 
 .container {
+  position: relative;
+  z-index: 5;
   max-width: 800px;
   margin: auto;
   background: white;
