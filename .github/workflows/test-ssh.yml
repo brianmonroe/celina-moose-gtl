@@ -31,9 +31,18 @@ jobs:
           ssh -p ${{ secrets.SG_PORT }} ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }} "pwd"
           ssh -p ${{ secrets.SG_PORT }} ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }} "ls -lah ~"
 
-      - name: Check possible SiteGround paths
+      - name: Explore SiteGround directories
         run: |
-          ssh -p ${{ secrets.SG_PORT }} ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }} "ls -lah /home/customer || true"
+          echo "Check /home/customer/www"
           ssh -p ${{ secrets.SG_PORT }} ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }} "ls -lah /home/customer/www || true"
+
+          echo "Check /home/customer/www/celinamoose.com"
+          ssh -p ${{ secrets.SG_PORT }} ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }} "ls -lah /home/customer/www/celinamoose.com || true"
+
+          echo "Check /home/customer/www/celinamoose.com/public_html"
           ssh -p ${{ secrets.SG_PORT }} ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }} "ls -lah /home/customer/www/celinamoose.com/public_html || true"
+
+          echo "Check final GTL directory"
+          ssh -p ${{ secrets.SG_PORT }} ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }} "ls -lah /home/customer/www/celinamoose.com/public_html/gtl || true"
+
 
