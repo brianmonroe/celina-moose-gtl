@@ -29,6 +29,7 @@ jobs:
       - name: Deploy via rsync
         run: |
           rsync -avz --delete \
+          -e "ssh -p ${{ secrets.SG_PORT }}" \
           --exclude='.git*' \
           ./ \
           ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }}:/home/customer/www/celinamoose.com/public_html/gtl/
@@ -36,4 +37,3 @@ jobs:
       - name: Purge SiteGround Cache
         run: |
           curl -X PURGE https://celinamoose.com/gtl/ || true
-
