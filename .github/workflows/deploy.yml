@@ -31,4 +31,9 @@ jobs:
           rsync -avz --delete \
           --exclude='.git*' \
           ./ \
-          ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }}:/home/${{ secrets.SG_USER }}/public_html/gtl/
+          ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }}:/home/customer/www/celinamoose.com/public_html/gtl/
+
+      - name: Purge SiteGround Cache
+        run: |
+          curl -X PURGE https://celinamoose.com/gtl/ || true
+
