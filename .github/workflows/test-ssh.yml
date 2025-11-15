@@ -26,6 +26,14 @@ jobs:
           echo "Testing SSH connection..."
           ssh -p ${{ secrets.SG_PORT }} ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }} "echo Connected!"
 
-      - name: List GTL directory
+      - name: Show home directory
         run: |
-          ssh -p ${{ secrets.SG_PORT }} ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }} "ls -lah /home/${{ secrets.SG_USER }}/public_html/gtl"
+          ssh -p ${{ secrets.SG_PORT }} ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }} "pwd"
+          ssh -p ${{ secrets.SG_PORT }} ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }} "ls -lah ~"
+
+      - name: Check possible SiteGround paths
+        run: |
+          ssh -p ${{ secrets.SG_PORT }} ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }} "ls -lah /home/customer || true"
+          ssh -p ${{ secrets.SG_PORT }} ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }} "ls -lah /home/customer/www || true"
+          ssh -p ${{ secrets.SG_PORT }} ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }} "ls -lah /home/customer/www/celinamoose.com/public_html || true"
+
