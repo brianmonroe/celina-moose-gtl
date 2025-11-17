@@ -36,4 +36,4 @@ jobs:
 
       - name: Purge SiteGround Cache
         run: |
-          curl -X PURGE https://celinamoose.com/gtl/ || true
+          curl -s "https://celinamoose.com/gtl/?nocache=$(date +%s)" || true
