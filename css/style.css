@@ -157,3 +157,18 @@ footer {
   display: none;
 }
 
+.badge-dnp {
+  display: inline-block;
+  background: #b82e2e;
+  color: #fff;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+.dnp-row {
+  background: #f0f0f0 !important;
+  opacity: 0.75;
+}
+
