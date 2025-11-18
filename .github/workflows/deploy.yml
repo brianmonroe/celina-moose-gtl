@@ -77,14 +77,14 @@ jobs:
             -e "ssh -p ${{ secrets.SG_PORT }}" \
             --exclude='.git*' \
             ./ \
-            ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }}:/home/customer/www/celinamoose.com/public_html/gtl-dev/${BRANCH}/
+            ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }}:/home/customer/www/celinamoose.com/public_html/gtl/gtl-dev/${BRANCH}/
 
       - name: Purge Preview Cache
         run: |
           BRANCH="${GITHUB_REF#refs/heads/}"
-          curl -s "https://celinamoose.com/gtl-dev/${BRANCH}/?nocache=$(date +%s)" || true
+          curl -s "https://celinamoose.com/gtl/gtl-dev/${BRANCH}/?nocache=$(date +%s)" || true
 
       - name: Preview URL
         run: |
           BRANCH="${GITHUB_REF#refs/heads/}"
-          echo "Preview Site: https://celinamoose.com/gtl-dev/${BRANCH}/"
+          echo "Preview Site: https://celinamoose.com/gtl/gtl-dev/${BRANCH}/"
