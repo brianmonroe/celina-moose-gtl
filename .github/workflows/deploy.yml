@@ -37,3 +37,41 @@ jobs:
       - name: Purge SiteGround Cache
         run: |
           curl -s "https://celinamoose.com/gtl/?nocache=$(date +%s)" || true
+
+
+    deploy-preview:
+      runs-on: ubuntu-latest
+      if: github.ref != 'refs/heads/main'
+
+      steps:
+        - name: Checkout Repo
+          uses: actions/checkout@v4
+
+        - name: Install SSH Client
+          run: sudo apt-get install openssh-client -y
+
+        - name: Add SSH Key
+          run: |
+            mkdir -p ~/.ssh
+            echo "${{ secrets.SG_SSH_KEY }}" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+
+        - name: Add Known Hosts
+          run: |
+            ssh-keyscan -p ${{ secrets.SG_PORT }} ${{ secrets.SG_HOST }} >> ~/.ssh/known_hosts
+
+        - name: Deploy Preview via rsync
+          run: |
+            BRANCH="${GITHUB_REF#refs/heads/}"
+            rsync -avz --delete \
+              -e "ssh -p ${{ secrets.SG_PORT }}" \
+              --exclude='.git*' \
+              ./ \
+              ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }}:/home/customer/www/celinamoose.com/public_html/gtl-previews/${BRANCH}/
+
+        - name: Purge Cache
+          run: |
+            curl -s "https://celinamoose.com/gtl-previews/${GITHUB_REF#refs/heads}/?nocache=$(date +%s)" || true
+
+        - name: Output Preview URL
+          run: echo "Preview Site: https://celinamoose.com/gtl-dev/${GITHUB_REF#refs/heads}/"
