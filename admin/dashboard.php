@@ -20,7 +20,7 @@ button { padding:10px 20px; margin-top:20px; }
 </head>
 <body>
 
-<h2>GTL Admin Dashboard</h2>
+<h2>Celina Moose GTL Admin Dashboard</h2>
 
 <div id="admin-container">Loading...</div>
 
