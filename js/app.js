@@ -110,50 +110,60 @@ function initializeApp() {
   function render(sortBy = "net") {
 
   let list = players.map(p => {
-    // Apply handicap to every week individually
-    const weeklyNetScores = p.scores.map(s => {
-      // If score is missing, treat as 0, do NOT apply handicap
-      if (s === 0 || s === "DNP") return 0;
+
+    let weeklyNet = p.scores.map(s => {
+      if (s === "DNP") return "DNP";
+      if (s === null || s === "") return "DNP";
       return s - p.handicap;
     });
 
-    const totalRaw = p.scores.reduce((a, b) => a + (isNaN(b) ? 0 : b), 0);
-    const totalNet = weeklyNetScores.reduce((a, b) => a + (isNaN(b) ? 0 : b), 0);
+    let totalRaw = p.scores.reduce((acc, s) => {
+      if (s === "DNP") return acc;
+      return acc + s;
+    }, 0);
+
+    let totalNet = weeklyNet.reduce((acc, s) => {
+      if (s === "DNP") return acc;
+      return acc + s;
+    }, 0);
 
     return {
       ...p,
+      weeklyNet,
       totalRaw,
       totalNet,
-      weeklyNetScores
+      hasDNP: p.scores.includes("DNP")
     };
   });
 
-  // Use totalNet for net sorting
-  list.sort((a, b) => a.totalNet - b.totalNet);
+  // Sorting:
+  // 1. DNP players always at bottom
+  // 2. Then sort by totalNet
+  list.sort((a, b) => {
+    if (a.hasDNP && !b.hasDNP) return 1;
+    if (!a.hasDNP && b.hasDNP) return -1;
+    return a.totalNet - b.totalNet;
+  });
 
   body.innerHTML = list
     .map((p, i) => {
 
-      const weeklyDisplay = p.scores
-        .map((s, w) => {
-          if (s === 0 || s === "DNP") {
-            return `<div><strong>Week ${w+1}:</strong> <span class="dnp">DNP</span></div>`;
-          }
-          return `<div><strong>Week ${w+1}:</strong> ${s} (Net: ${p.weeklyNetScores[w]})</div>`;
-        })
-        .join("");
+      let weeklyHtml = p.scores.map((s, w) => {
+        if (s === "DNP") {
+          return `<div><strong>Week ${w+1}:</strong> <span class="dnp">DNP</span></div>`;
+        }
+        return `<div><strong>Week ${w+1}:</strong> ${s} (Net: ${p.weeklyNet[w]})</div>`;
+      }).join("");
 
       return `
-        <tr class="player-row ${p.scores.includes("DNP") || p.scores.includes(0) ? "dnp-row" : ""}">
+        <tr class="player-row ${p.hasDNP ? "dnp-row" : ""}">
           <td>${i + 1}</td>
           <td>
             <div class="player-info">
               <span class="player-name">${p.name}</span>
               <button class="toggle-btn">View Scores</button>
             </div>
-            <div class="scores-list hidden">
-              ${weeklyDisplay}
-            </div>
+            <div class="scores-list hidden">${weeklyHtml}</div>
           </td>
           <td>${p.handicap}</td>
           <td>${p.totalRaw}</td>
@@ -165,6 +175,7 @@ function initializeApp() {
 
   attachToggles();
 }
+
 
   //------------------------------------------------------------
   // Toggle expanded weekly scores

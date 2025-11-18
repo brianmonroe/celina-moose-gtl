@@ -16,6 +16,14 @@ td, th { border:1px solid #ccc; padding:8px; text-align:center; }
 th { background:#333; color:white; }
 input { width:60px; }
 button { padding:10px 20px; margin-top:20px; }
+.dnp {
+  color: #b33;
+  font-weight: bold;
+}
+
+.dnp-row {
+  background: #f0f0f0;
+}
 </style>
 </head>
 <body>
@@ -88,9 +96,9 @@ function renderAdmin() {
   for (let w = 0; w < maxWeeks; w++) {
     html += `
       <th>
-        <input data-type="course" data-w="${w}" 
-          value="${courses[w] ?? ""}" 
-          placeholder="Course W${w+1}">
+        <input data-type="course" data-w="${w}"
+        value="${courses[w] ?? ""}"
+        placeholder="Course W${w+1}">
       </th>
     `;
   }
@@ -104,13 +112,25 @@ function renderAdmin() {
   // --- PLAYER ROWS ---
   players.forEach((p, i) => {
     html += `<tr><td>${p.name}</td>`;
-    html += `<td><input data-type="handicap" data-i="${i}" value="${p.handicap}"></td>`;
 
+    html += `
+      <td>
+        <input data-type="handicap" data-i="${i}" 
+               type="number" value="${p.handicap}">
+      </td>
+    `;
+
+    // SCORE INPUTS (NOW DROPDOWNS)
     for (let w = 0; w < maxWeeks; w++) {
+      const current = p.scores[w] ?? "";
+
       html += `
         <td>
-          <input data-type="score" data-i="${i}" data-w="${w}"
-            value="${p.scores[w] ?? ""}">
+          <select data-type="score" data-i="${i}" data-w="${w}">
+            <option value="">—</option>
+            <option value="DNP" ${current === "DNP" ? "selected" : ""}>DNP</option>
+            ${generateScoreOptions(current)}
+          </select>
         </td>
       `;
     }
@@ -130,6 +150,14 @@ function renderAdmin() {
   document.getElementById("add-week-btn").onclick = addWeek;
 }
 
+function generateScoreOptions(current) {
+  let options = "";
+  for (let n = 40; n <= 90; n++) {
+    options += `<option value="${n}" ${current == n ? "selected" : ""}>${n}</option>`;
+  }
+  return options;
+}
+
 function addWeek() {
   // Extend courses array
   courses.push("");
@@ -141,28 +169,31 @@ function addWeek() {
 }
 
 document.getElementById("publish-btn").addEventListener("click", () => {
-  // Update data from inputs
-  document.querySelectorAll("input").forEach(el => {
-    const type = el.dataset.type;
 
-    if (type === "course") {
-      const w = Number(el.dataset.w);
-      courses[w] = el.value;
-    }
-
-    if (type === "handicap") {
-      const i = Number(el.dataset.i);
-      players[i].handicap = Number(el.value);
-    }
-
-    if (type === "score") {
-      const i = Number(el.dataset.i);
-      const w = Number(el.dataset.w);
-      players[i].scores[w] = Number(el.value);
-    }
+  // Update courses
+  document.querySelectorAll("input[data-type='course']").forEach(el => {
+    const w = Number(el.dataset.w);
+    courses[w] = el.value;
   });
 
-  // Send JSON to PHP
+  // Update handicaps
+  document.querySelectorAll("input[data-type='handicap']").forEach(el => {
+    const i = Number(el.dataset.i);
+    players[i].handicap = Number(el.value);
+  });
+
+  // Update scores (DNP-aware)
+  document.querySelectorAll("select[data-type='score']").forEach(sel => {
+    const i = Number(sel.dataset.i);
+    const w = Number(sel.dataset.w);
+    const val = sel.value;
+
+    if (val === "") players[i].scores[w] = "";
+    else if (val === "DNP") players[i].scores[w] = "DNP";
+    else players[i].scores[w] = Number(val);
+  });
+
+  // Publish
   fetch("save.php", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
