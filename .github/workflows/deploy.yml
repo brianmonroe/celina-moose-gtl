@@ -85,4 +85,6 @@ jobs:
           curl -s "https://celinamoose.com/gtl-dev/${BRANCH}/?nocache=$(date +%s)" || true
 
       - name: Preview URL
-        run: echo "Preview Site: https://celinamoose.com/gtl-dev/${GITHUB_REF#refs/heads}/"
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          echo "Preview Site: https://celinamoose.com/gtl-dev/${BRANCH}/"
