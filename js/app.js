@@ -107,74 +107,64 @@ function initializeApp() {
   //------------------------------------------------------------
   // RENDER STANDINGS
   //------------------------------------------------------------
-  function render(sortBy = "net", standingsWeekParam) {
-    const list = players.map(p => {
-      const total = getTotal(p.scores);
-      const net = getNet(total, p.handicap);
-      return { ...p, total, net };
+  function render(sortBy = "net") {
+
+  let list = players.map(p => {
+    // Apply handicap to every week individually
+    const weeklyNetScores = p.scores.map(s => {
+      // If score is missing, treat as 0, do NOT apply handicap
+      if (s === 0 || s === "DNP") return 0;
+      return s - p.handicap;
     });
 
-    // -------- FIXED SORTING --------
-    list.sort((a, b) => {
-      const aMissing = isMissingScore(a.scores[standingsWeekParam - 1]);
-      const bMissing = isMissingScore(b.scores[standingsWeekParam - 1]);
+    const totalRaw = p.scores.reduce((a, b) => a + (isNaN(b) ? 0 : b), 0);
+    const totalNet = weeklyNetScores.reduce((a, b) => a + (isNaN(b) ? 0 : b), 0);
 
-      // If A DNP and B didn't → A goes last
-      if (aMissing && !bMissing) return 1;
+    return {
+      ...p,
+      totalRaw,
+      totalNet,
+      weeklyNetScores
+    };
+  });
 
-      // If B DNP and A didn't → B goes last
-      if (!aMissing && bMissing) return -1;
+  // Use totalNet for net sorting
+  list.sort((a, b) => a.totalNet - b.totalNet);
 
-      // Otherwise sort normally
-      return a[sortBy] - b[sortBy];
-    });
+  body.innerHTML = list
+    .map((p, i) => {
 
-    body.innerHTML = list
-      .map((p, i) => {
-        // Weekly score list
-        const weekly = p.scores
-          .map((s, w) => {
-            if (isMissingScore(s)) {
-              return `
-                <div>
-                  <strong>Week ${w + 1}:</strong>
-                  <span class="badge-dnp">DNP</span>
-                </div>
-              `;
-            }
-            return `<div><strong>Week ${w + 1}:</strong> ${s}</div>`;
-          })
-          .join("");
+      const weeklyDisplay = p.scores
+        .map((s, w) => {
+          if (s === 0 || s === "DNP") {
+            return `<div><strong>Week ${w+1}:</strong> <span class="dnp">DNP</span></div>`;
+          }
+          return `<div><strong>Week ${w+1}:</strong> ${s} (Net: ${p.weeklyNetScores[w]})</div>`;
+        })
+        .join("");
 
-        // DNP badge for leaderboard table (Option B)
-        const dnp = isMissingScore(p.scores[standingsWeekParam - 1])
-          ? `<span class="badge-dnp" style="margin-left:6px;">DNP</span>`
-          : "";
+      return `
+        <tr class="player-row ${p.scores.includes("DNP") || p.scores.includes(0) ? "dnp-row" : ""}">
+          <td>${i + 1}</td>
+          <td>
+            <div class="player-info">
+              <span class="player-name">${p.name}</span>
+              <button class="toggle-btn">View Scores</button>
+            </div>
+            <div class="scores-list hidden">
+              ${weeklyDisplay}
+            </div>
+          </td>
+          <td>${p.handicap}</td>
+          <td>${p.totalRaw}</td>
+          <td>${p.totalNet}</td>
+        </tr>
+      `;
+    })
+    .join("");
 
-        const rowClass = isMissingScore(p.scores[standingsWeekParam - 1]) 
-          ? "player-row dnp-row" 
-          : "player-row";
-        
-        return `
-          <tr class="${rowClass}">
-            <td>${i + 1}</td>
-            <td>
-              <div class="player-info">
-                <span class="player-name">${p.name}</span>
-                <button class="toggle-btn">View Scores</button>
-              </div>
-              <div class="scores-list hidden">${weekly}</div>
-            </td>
-            <td>${p.handicap ?? "—"}</td>
-            <td>${p.total} ${dnp}</td>
-            <td>${p.net} ${dnp}</td>
-          </tr>
-        `;
-      })
-      .join("");
-
-    attachToggles();
-  }
+  attachToggles();
+}
 
   //------------------------------------------------------------
   // Toggle expanded weekly scores
