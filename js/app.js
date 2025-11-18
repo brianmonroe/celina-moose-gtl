@@ -1,5 +1,5 @@
 //------------------------------------------------------------
-// GTL APP — Final Unified Frontend Logic (Option A)
+// GTL APP — Final Version with FIXED DNP Sorting (Mac-safe)
 //------------------------------------------------------------
 
 let players = [];
@@ -7,81 +7,88 @@ let courses = [];
 let summaries = [];
 
 //------------------------------------------------------------
-// Determine latest completed week (all players have scores)
+// Helper: Is a score missing?
+//------------------------------------------------------------
+function isMissingScore(s) {
+  return (
+    s === null ||
+    s === "" ||
+    s === 0 ||
+    s === "x" ||
+    s === "X" ||
+    s === "ns" ||
+    s === "NS" ||
+    s === "—" ||
+    s === 99 ||
+    isNaN(s)
+  );
+}
+
+//------------------------------------------------------------
+// Latest week where EVERY player has a valid score
 //------------------------------------------------------------
 function getLatestCompletedWeek(players) {
   const weekCount = Math.max(...players.map(p => p.scores.length));
 
   for (let w = weekCount - 1; w >= 0; w--) {
-    const allHaveScores = players.every(p => {
-      const s = p.scores[w];
-      return s !== "" && s !== null && !isNaN(s);
-    });
-    if (allHaveScores) return w + 1; // convert to 1-based
+    const hasAnyScore = players.some(p => !isMissingScore(p.scores[w]));
+    if (hasAnyScore) return w + 1; // 1-based week number
   }
 
   return 1;
 }
 
 //------------------------------------------------------------
-// Determine next week with a course but incomplete scores
+// Next upcoming week with a course assigned
 //------------------------------------------------------------
 function getNextCourseWeek(players, courses) {
   for (let w = 0; w < courses.length; w++) {
     const course = courses[w];
     if (!course || course.trim() === "") continue;
 
-    const allHaveScores = players.every(p => {
-      const s = p.scores[w];
-      // 0 MUST count as "not played yet"
-      return s !== "" && s !== null && s !== 0 && !isNaN(s);
-    });
+    const allDone = players.every(p => !isMissingScore(p.scores[w]));
 
-    if (!allHaveScores) {
-      return w + 1; // return 1-based week
-    }
+    if (!allDone) return w + 1;
   }
-
   return null;
 }
 
 //------------------------------------------------------------
-// Load Data (players.json → summaries.json)
+// LOAD DATA
 //------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
   fetch("data/players.json?_=" + Date.now())
     .then(r => r.json())
     .then(data => {
-      players = data.players ?? [];
-      courses = data.courses ?? [];
+      players = data.players;
+      courses = data.courses;
 
       return fetch("data/summaries.json?_=" + Date.now());
     })
     .then(r => r.json())
-    .then(summaryData => {
-      summaries = summaryData.summaries ?? [];
+    .then(data => {
+      summaries = data.summaries;
       initializeApp();
     });
 });
 
 //------------------------------------------------------------
-// MAIN INITIALIZER
+// MAIN APP INIT
 //------------------------------------------------------------
 function initializeApp() {
   const body = document.getElementById("league-body");
   const sortSelect = document.getElementById("sort-mode");
 
-  //------------------------------------------------------------
-  // PAGE HEADER (Leaderboard + Course)
-  //------------------------------------------------------------
-  const standingsWeek = getLatestCompletedWeek(players);
+  // Determine key week indices
+  const standingsWeek = getLatestCompletedWeek(players);   // IMPORTANT
   const courseWeek = getNextCourseWeek(players, courses);
 
-  // Leaderboard title
+  //------------------------------------------------------------
+  // Page Title + Subtitle
+  //------------------------------------------------------------
   document.getElementById("page-title").innerHTML =
     `Week ${standingsWeek} Leaderboard`;
 
-  // Course subtitle
   if (courseWeek && courses[courseWeek - 1]) {
     document.getElementById("page-subtitle").innerHTML =
       `Week ${courseWeek} Course: ${courses[courseWeek - 1]}`;
@@ -90,32 +97,66 @@ function initializeApp() {
   }
 
   //------------------------------------------------------------
-  // Standings Table Rendering
+  // Score Utilities
   //------------------------------------------------------------
-  const getTotal = scores => scores.reduce((a, b) => a + b, 0);
+  const getTotal = scores =>
+    scores.reduce((acc, s) => acc + (!isMissingScore(s) ? s : 0), 0);
+
   const getNet = (total, h) => (h !== null ? total - h : total);
 
-  function render(sortBy = "net") {
-    const list = players.map(p => ({
-      ...p,
-      total: getTotal(p.scores),
-      net: getNet(getTotal(p.scores), p.handicap)
-    }));
+  //------------------------------------------------------------
+  // RENDER STANDINGS
+  //------------------------------------------------------------
+  function render(sortBy = "net", standingsWeekParam) {
+    const list = players.map(p => {
+      const total = getTotal(p.scores);
+      const net = getNet(total, p.handicap);
+      return { ...p, total, net };
+    });
 
-    list.sort((a, b) => a[sortBy] - b[sortBy]);
+    // -------- FIXED SORTING --------
+    list.sort((a, b) => {
+      const aMissing = isMissingScore(a.scores[standingsWeekParam - 1]);
+      const bMissing = isMissingScore(b.scores[standingsWeekParam - 1]);
+
+      // If A DNP and B didn't → A goes last
+      if (aMissing && !bMissing) return 1;
+
+      // If B DNP and A didn't → B goes last
+      if (!aMissing && bMissing) return -1;
+
+      // Otherwise sort normally
+      return a[sortBy] - b[sortBy];
+    });
 
     body.innerHTML = list
       .map((p, i) => {
+        // Weekly score list
         const weekly = p.scores
           .map((s, w) => {
-            const display =
-              (s === 0 || s === null || s === "" || isNaN(s)) ? "—" : s;
-            return `<div><strong>Week ${w + 1}:</strong> ${display}</div>`;
+            if (isMissingScore(s)) {
+              return `
+                <div>
+                  <strong>Week ${w + 1}:</strong>
+                  <span class="badge-dnp">DNP</span>
+                </div>
+              `;
+            }
+            return `<div><strong>Week ${w + 1}:</strong> ${s}</div>`;
           })
           .join("");
 
+        // DNP badge for leaderboard table (Option B)
+        const dnp = isMissingScore(p.scores[standingsWeekParam - 1])
+          ? `<span class="badge-dnp" style="margin-left:6px;">DNP</span>`
+          : "";
+
+        const rowClass = isMissingScore(p.scores[standingsWeekParam - 1]) 
+          ? "player-row dnp-row" 
+          : "player-row";
+        
         return `
-          <tr class="player-row">
+          <tr class="${rowClass}">
             <td>${i + 1}</td>
             <td>
               <div class="player-info">
@@ -125,8 +166,8 @@ function initializeApp() {
               <div class="scores-list hidden">${weekly}</div>
             </td>
             <td>${p.handicap ?? "—"}</td>
-            <td>${p.total}</td>
-            <td>${p.net}</td>
+            <td>${p.total} ${dnp}</td>
+            <td>${p.net} ${dnp}</td>
           </tr>
         `;
       })
@@ -136,7 +177,7 @@ function initializeApp() {
   }
 
   //------------------------------------------------------------
-  // Expand/Collapse Score Toggles
+  // Toggle expanded weekly scores
   //------------------------------------------------------------
   function attachToggles() {
     document.querySelectorAll(".toggle-btn").forEach(btn => {
@@ -150,11 +191,16 @@ function initializeApp() {
     });
   }
 
-  sortSelect.addEventListener("change", e => render(e.target.value));
-  render(); // initial render
+  // Dropdown changes
+  sortSelect.addEventListener("change", e =>
+    render(e.target.value, standingsWeek)
+  );
+
+  // First render
+  render("net", standingsWeek);
 
   //------------------------------------------------------------
-  // WEEKLY SUMMARY (title + content + awards)
+  // WEEKLY SUMMARY
   //------------------------------------------------------------
   function renderSummary() {
     if (!summaries.length) return;
@@ -167,35 +213,33 @@ function initializeApp() {
     renderWeeklyAwards(latest.week);
   }
 
-  renderSummary();
-
   //------------------------------------------------------------
-  // WEEKLY AWARDS (Dynamic Low-Man + High-Man)
+  // WEEKLY AWARDS
   //------------------------------------------------------------
   function renderWeeklyAwards(weekNumber) {
     const awardsDiv = document.getElementById("weekly-awards");
 
-    const weekScores = players
+    const scores = players
       .map(p => {
-        const score = p.scores[weekNumber - 1];
-        return (score !== null && score !== "" && !isNaN(score))
-          ? { name: p.name, score }
-          : null;
+        const s = p.scores[weekNumber - 1];
+        return isMissingScore(s) ? null : { name: p.name, score: s };
       })
       .filter(Boolean);
 
-    if (!weekScores.length) {
+    if (!scores.length) {
       awardsDiv.innerHTML = "";
       return;
     }
 
-    const lowMan = weekScores.reduce((a, b) => (b.score < a.score ? b : a));
-    const highMan = weekScores.reduce((a, b) => (b.score > a.score ? b : a));
+    const lowMan = scores.reduce((a, b) => (b.score < a.score ? b : a));
+    const highMan = scores.reduce((a, b) => (b.score > a.score ? b : a));
 
     awardsDiv.innerHTML = `
       <h3>Weekly Awards</h3>
       <p><strong>🏆 LOW-MAN AWARD:</strong> ${lowMan.name} (${lowMan.score})</p>
-      <p><strong>🤡 HIGH-MAN AWARD:</strong> ${highMan.name} (${highMan.score})</p>
+      <p><strong>🤡 HIGH-MAN AWARDD:</strong> ${highMan.name} (${highMan.score})</p>
     `;
   }
+
+  renderSummary();
 }

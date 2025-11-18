@@ -4,119 +4,134 @@
             "name": "CJ Staugler",
             "scores": [
                 54,
-                49
+                49,
+                50
             ],
-            "handicap": 0
+            "handicap": 5
         },
         {
             "name": "Donny Sams",
             "scores": [
                 54,
+                59,
                 59
             ],
-            "handicap": 0
+            "handicap": 10
         },
         {
             "name": "Eric Sams",
             "scores": [
                 55,
-                55
+                55,
+                53
             ],
-            "handicap": 0
+            "handicap": 6
         },
         {
             "name": "Heath Coate",
             "scores": [
                 55,
-                55
+                55,
+                58
             ],
-            "handicap": 0
+            "handicap": 9
         },
         {
             "name": "Gabe Archer",
             "scores": [
                 58,
-                57
+                57,
+                54
             ],
-            "handicap": 0
+            "handicap": 9
         },
         {
             "name": "Chad Schmitmeyer",
             "scores": [
                 61,
-                60
+                60,
+                58
             ],
-            "handicap": 0
+            "handicap": 12
         },
         {
             "name": "Drew Braun",
             "scores": [
                 62,
-                57
+                57,
+                58
             ],
-            "handicap": 0
+            "handicap": 11
         },
         {
             "name": "Chicken",
             "scores": [
                 63,
-                58
+                58,
+                70
             ],
-            "handicap": 0
+            "handicap": 15
         },
         {
             "name": "Cory Hathaway",
             "scores": [
                 63,
-                57
+                57,
+                56
             ],
-            "handicap": 0
+            "handicap": 11
         },
         {
             "name": "Chip Alig",
             "scores": [
                 65,
-                75
+                75,
+                59
             ],
-            "handicap": 0
+            "handicap": 17
         },
         {
             "name": "Brian Monroe",
             "scores": [
                 66,
-                62
+                62,
+                57
             ],
-            "handicap": 0
+            "handicap": 14
         },
         {
             "name": "Zach Schlarman",
             "scores": [
                 76,
-                80
+                80,
+                71
             ],
-            "handicap": 0
+            "handicap": 25
         },
         {
             "name": "Kyle Trazfer",
             "scores": [
                 77,
-                69
+                69,
+                79
             ],
-            "handicap": 0
+            "handicap": 24
         },
         {
             "name": "Adam Hulatt",
             "scores": [
                 60,
-                55
+                55,
+                62
             ],
-            "handicap": 0
+            "handicap": 11
         },
         {
             "name": "Nate Giesege",
             "scores": [
                 62,
-                55
+                55,
+                99
             ],
             "handicap": 0
         }
@@ -124,6 +139,6 @@
     "courses": [
         "Tundra Peaks",
         "Bonnie Moor",
-        "Jamaica Bay"
+        "Pine Coast"
     ]
 }
