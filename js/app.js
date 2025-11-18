@@ -238,7 +238,7 @@ function initializeApp() {
     awardsDiv.innerHTML = `
       <h3>Weekly Awards</h3>
       <p><strong>🏆 LOW-MAN AWARD:</strong> ${lowMan.name} (${lowMan.score})</p>
-      <p><strong>🤡 HIGH-MAN AWARDD:</strong> ${highMan.name} (${highMan.score})</p>
+      <p><strong>🤡 HIGH-MAN AWARD:</strong> ${highMan.name} (${highMan.score})</p>
     `;
   }
 
