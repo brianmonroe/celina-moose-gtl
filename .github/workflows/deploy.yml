@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - "**"     # allow previews for any branch
+      - "**"   # allow previews for all branches
 
 jobs:
 
@@ -72,6 +72,8 @@ jobs:
           rsync -avz --delete \
             -e "ssh -p ${{ secrets.SG_PORT }}" \
             --exclude='.git*' \
+            --exclude='.htaccess' \
+            --exclude='.htpasswd' \
             ./ \
             ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }}:/home/customer/www/celinamoose.com/public_html/gtl-dev/${BRANCH}/
 
@@ -83,4 +85,7 @@ jobs:
       - name: Output Preview URL
         run: |
           BRANCH="${GITHUB_REF#refs/heads/}"
-          echo "Preview URL: https://celinamoose.com/gtl-dev/${BRANCH}/"
+          echo "-----------------------------------------"
+          echo "  Preview URL:"
+          echo "  https://celinamoose.com/gtl-dev/${BRANCH}/"
+          echo "-----------------------------------------"
