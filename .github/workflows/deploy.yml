@@ -1,12 +1,18 @@
-name: Deploy to SiteGround
+name: Deploy to SiteGround (Production + Previews)
 
 on:
   push:
     branches:
       - main
+      - "**"     # allow previews for any branch
 
 jobs:
-  deploy:
+
+  # --------------------------------------------------
+  # PRODUCTION DEPLOY — only when pushing to main
+  # --------------------------------------------------
+  deploy-production:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
@@ -14,7 +20,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install SSH Client
-        run: sudo apt-get install openssh-client -y
+        run: sudo apt-get install -y openssh-client
 
       - name: Add SSH Key
         run: |
@@ -23,19 +29,58 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
 
       - name: Add Known Hosts
-        run: |
-          ssh-keyscan -p ${{ secrets.SG_PORT }} ${{ secrets.SG_HOST }} >> ~/.ssh/known_hosts
+        run: ssh-keyscan -p ${{ secrets.SG_PORT }} ${{ secrets.SG_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy via rsync
+      - name: Deploy to /gtl/
         run: |
           rsync -avz --delete \
-          -e "ssh -p ${{ secrets.SG_PORT }}" \
-          --exclude='.git*' \
-          ./ \
-          ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }}:/home/customer/www/celinamoose.com/public_html/gtl/
+            -e "ssh -p ${{ secrets.SG_PORT }}" \
+            --exclude='.git*' \
+            ./ \
+            ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }}:/home/customer/www/celinamoose.com/public_html/gtl/
 
-      - name: Purge SiteGround Cache
+      - name: Purge Cache
+        run: curl -s "https://celinamoose.com/gtl/?nocache=$(date +%s)" || true
+
+
+  # --------------------------------------------------
+  # PREVIEW DEPLOY — any branch except main
+  # --------------------------------------------------
+  deploy-preview:
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Install SSH Client
+        run: sudo apt-get install -y openssh-client
+
+      - name: Add SSH Key
         run: |
-          curl -s "https://celinamoose.com/gtl/?nocache=$(date +%s)" || true
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SG_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
 
+      - name: Add Known Hosts
+        run: ssh-keyscan -p ${{ secrets.SG_PORT }} ${{ secrets.SG_HOST }} >> ~/.ssh/known_hosts
 
+      - name: Deploy Preview to /gtl-dev/{branch}/
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          rsync -avz --delete \
+            -e "ssh -p ${{ secrets.SG_PORT }}" \
+            --exclude='.git*' \
+            ./ \
+            ${{ secrets.SG_USER }}@${{ secrets.SG_HOST }}:/home/customer/www/celinamoose.com/public_html/gtl-dev/${BRANCH}/
+
+      - name: Purge Preview Cache
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          curl -s "https://celinamoose.com/gtl-dev/${BRANCH}/?nocache=$(date +%s)" || true
+
+      - name: Output Preview URL
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          echo "Preview URL: https://celinamoose.com/gtl-dev/${BRANCH}/"
