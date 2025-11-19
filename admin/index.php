@@ -26,7 +26,7 @@ button { padding: 10px 20px; font-size: 18px; }
 </head>
 <body>
 
-<h2>GTL Admin Login</h2>
+<h2>Celina Moose GTL Admin Login</h2>
 
 <?php if (!empty($error)) echo "<div class='error'>$error</div>"; ?>
 
