@@ -1,5 +1,5 @@
 //------------------------------------------------------------
-// GTL APP — Final Version with FIXED DNP Sorting (Mac-safe)
+// GTL APP — Final Version with Per-Week Handicap Support
 //------------------------------------------------------------
 
 let players = [];
@@ -25,21 +25,21 @@ function isMissingScore(s) {
 }
 
 //------------------------------------------------------------
-// Latest week where EVERY player has a valid score
+// Latest week where ANY player has a valid score
 //------------------------------------------------------------
 function getLatestCompletedWeek(players) {
   const weekCount = Math.max(...players.map(p => p.scores.length));
 
   for (let w = weekCount - 1; w >= 0; w--) {
     const hasAnyScore = players.some(p => !isMissingScore(p.scores[w]));
-    if (hasAnyScore) return w + 1; // 1-based week number
+    if (hasAnyScore) return w + 1;
   }
 
   return 1;
 }
 
 //------------------------------------------------------------
-// Next upcoming week with a course assigned
+// Next week with a course assigned but not all scores submitted
 //------------------------------------------------------------
 function getNextCourseWeek(players, courses) {
   for (let w = 0; w < courses.length; w++) {
@@ -47,7 +47,6 @@ function getNextCourseWeek(players, courses) {
     if (!course || course.trim() === "") continue;
 
     const allDone = players.every(p => !isMissingScore(p.scores[w]));
-
     if (!allDone) return w + 1;
   }
   return null;
@@ -79,12 +78,11 @@ function initializeApp() {
   const body = document.getElementById("league-body");
   const sortSelect = document.getElementById("sort-mode");
 
-  // Determine key week indices
-  const standingsWeek = getLatestCompletedWeek(players);   // IMPORTANT
+  const standingsWeek = getLatestCompletedWeek(players);
   const courseWeek = getNextCourseWeek(players, courses);
 
   //------------------------------------------------------------
-  // Page Title + Subtitle
+  // Titles
   //------------------------------------------------------------
   document.getElementById("page-title").innerHTML =
     `Week ${standingsWeek} Leaderboard`;
@@ -97,88 +95,82 @@ function initializeApp() {
   }
 
   //------------------------------------------------------------
-  // Score Utilities
-  //------------------------------------------------------------
-  const getTotal = scores =>
-    scores.reduce((acc, s) => acc + (!isMissingScore(s) ? s : 0), 0);
-
-  const getNet = (total, h) => (h !== null ? total - h : total);
-
-  //------------------------------------------------------------
   // RENDER STANDINGS
   //------------------------------------------------------------
   function render(sortBy = "net") {
 
-  let list = players.map(p => {
+    let list = players.map(p => {
 
-    let weeklyNet = p.scores.map(s => {
-      if (s === "DNP") return "DNP";
-      if (s === null || s === "") return "DNP";
-      return s - p.handicap;
+      // Fallback if handicaps missing
+      const hcaps = p.handicaps || [];
+
+      // WEEKLY NET SCORES (fixed per-week handicap!)
+      let weeklyNet = p.scores.map((s, w) => {
+        if (s === "DNP") return "DNP";
+        const h = hcaps[w] ?? 0;
+        return s - h;
+      });
+
+      // TOTALS
+      let totalRaw = p.scores.reduce((acc, s) => {
+        if (s === "DNP") return acc;
+        return acc + s;
+      }, 0);
+
+      let totalNet = weeklyNet.reduce((acc, s) => {
+        if (s === "DNP") return acc;
+        return acc + s;
+      }, 0);
+
+      return {
+        ...p,
+        weeklyNet,
+        totalRaw,
+        totalNet,
+        hasDNP: p.scores.includes("DNP")
+      };
     });
 
-    let totalRaw = p.scores.reduce((acc, s) => {
-      if (s === "DNP") return acc;
-      return acc + s;
-    }, 0);
+    // Sorting: DNP Last, then by totalNet
+    list.sort((a, b) => {
+      if (a.hasDNP && !b.hasDNP) return 1;
+      if (!a.hasDNP && b.hasDNP) return -1;
+      return a.totalNet - b.totalNet;
+    });
 
-    let totalNet = weeklyNet.reduce((acc, s) => {
-      if (s === "DNP") return acc;
-      return acc + s;
-    }, 0);
+    // Render
+    body.innerHTML = list
+      .map((p, i) => {
+        let weeklyHtml = p.scores.map((s, w) => {
+          if (s === "DNP") {
+            return `<div><strong>Week ${w+1}:</strong> <span class="dnp">DNP</span></div>`;
+          }
+          return `<div><strong>Week ${w+1}:</strong> ${s} (Net: ${p.weeklyNet[w]})</div>`;
+        }).join("");
 
-    return {
-      ...p,
-      weeklyNet,
-      totalRaw,
-      totalNet,
-      hasDNP: p.scores.includes("DNP")
-    };
-  });
+        return `
+          <tr class="player-row ${p.hasDNP ? "dnp-row" : ""}">
+            <td>${i + 1}</td>
+            <td>
+              <div class="player-info">
+                <span class="player-name">${p.name}</span>
+                <button class="toggle-btn">View Scores</button>
+              </div>
+              <div class="scores-list hidden">${weeklyHtml}</div>
+            </td>
+            <td>${p.handicaps ? p.handicaps[p.handicaps.length - 1] : 0}</td>
+            <td>${p.totalRaw}</td>
+            <td>${p.totalNet}</td>
+          </tr>
+        `;
+      })
+      .join("");
 
-  // Sorting:
-  // 1. DNP players always at bottom
-  // 2. Then sort by totalNet
-  list.sort((a, b) => {
-    if (a.hasDNP && !b.hasDNP) return 1;
-    if (!a.hasDNP && b.hasDNP) return -1;
-    return a.totalNet - b.totalNet;
-  });
-
-  body.innerHTML = list
-    .map((p, i) => {
-
-      let weeklyHtml = p.scores.map((s, w) => {
-        if (s === "DNP") {
-          return `<div><strong>Week ${w+1}:</strong> <span class="dnp">DNP</span></div>`;
-        }
-        return `<div><strong>Week ${w+1}:</strong> ${s} (Net: ${p.weeklyNet[w]})</div>`;
-      }).join("");
-
-      return `
-        <tr class="player-row ${p.hasDNP ? "dnp-row" : ""}">
-          <td>${i + 1}</td>
-          <td>
-            <div class="player-info">
-              <span class="player-name">${p.name}</span>
-              <button class="toggle-btn">View Scores</button>
-            </div>
-            <div class="scores-list hidden">${weeklyHtml}</div>
-          </td>
-          <td>${p.handicap}</td>
-          <td>${p.totalRaw}</td>
-          <td>${p.totalNet}</td>
-        </tr>
-      `;
-    })
-    .join("");
-
-  attachToggles();
-}
-
+    attachToggles();
+  }
 
   //------------------------------------------------------------
-  // Toggle expanded weekly scores
+  // Expand/Collapse Scores
   //------------------------------------------------------------
   function attachToggles() {
     document.querySelectorAll(".toggle-btn").forEach(btn => {
@@ -192,12 +184,10 @@ function initializeApp() {
     });
   }
 
-  // Dropdown changes
   sortSelect.addEventListener("change", e =>
     render(e.target.value, standingsWeek)
   );
 
-  // First render
   render("net", standingsWeek);
 
   //------------------------------------------------------------
