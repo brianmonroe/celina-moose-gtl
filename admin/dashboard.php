@@ -12,19 +12,12 @@ if (!isset($_SESSION['gtl_admin'])) {
 <style>
 body { font-family: Arial; padding:20px; }
 table { width:100%; border-collapse:collapse; margin-top:20px; }
-td, th { border:1px solid #ccc; padding:6px; text-align:center; }
+td, th { border:1px solid #ccc; padding:8px; text-align:center; }
 th { background:#333; color:white; }
-input, select { width:60px; }
-button { padding:10px 20px; margin-top:20px; }
-
-.dnp {
-  color: #b33;
-  font-weight: bold;
-}
-
-.dnp-row {
-  background: #f0f0f0;
-}
+input, select { width:70px; }
+button { padding:10px 20px; margin-top:20px; cursor:pointer; }
+.dnp { color:#b33; font-weight:bold; }
+.dnp-row { background:#f7f7f7; }
 </style>
 </head>
 <body>
@@ -34,20 +27,21 @@ button { padding:10px 20px; margin-top:20px; }
 <div id="admin-container">Loading...</div>
 
 <button id="publish-btn">Publish Changes</button>
+<button id="recompute-btn" style="background:#0077cc;color:white;">Recompute Handicaps</button>
 
-<hr style="margin: 30px 0;">
+<hr style="margin: 40px 0;">
 
 <!-- WEEKLY SUMMARIES (unchanged) -->
 <section id="summary-admin">
   <h2>Weekly Summaries</h2>
 
   <div style="margin-bottom:10px;">
-    <label><strong>Week:</strong></label>
+    <label for="summary-week-select"><strong>Week:</strong></label>
     <select id="summary-week-select"></select>
   </div>
 
   <div style="margin-bottom:10px;">
-    <label><strong>Title:</strong></label><br>
+    <label for="summary-title-input"><strong>Title:</strong></label><br>
     <input type="text" id="summary-title-input" style="width:100%;">
   </div>
 
@@ -73,71 +67,59 @@ button { padding:10px 20px; margin-top:20px; }
 let players = [];
 let courses = [];
 
-// ------------------------------------------------------------
-// LOAD PLAYER + COURSE DATA
-// ------------------------------------------------------------
+// Load data
 fetch("../data/players.json?_=" + Date.now())
   .then(r => r.json())
   .then(data => {
-
-    // Ensure new structure exists
-    data.players.forEach(p => {
-      if (!p.handicaps) p.handicaps = p.scores.map(() => p.handicap ?? 0);
-    });
-
     players = data.players;
     courses = data.courses ?? [];
     renderAdmin();
   });
 
-// ------------------------------------------------------------
-// RENDER ADMIN TABLE
-// ------------------------------------------------------------
+// ---------- RENDER ADMIN TABLE ----------
 function renderAdmin() {
   const container = document.getElementById("admin-container");
   let maxWeeks = Math.max(...players.map(p => p.scores.length), courses.length);
 
   let html = "<table>";
 
-  // --- COURSE ROW ---
-  html += "<tr><th>Player</th><th></th>";
+  // Courses row
+  html += "<tr><th>Course</th><th></th>";
   for (let w = 0; w < maxWeeks; w++) {
-    html += `<th colspan="2">W${w+1}</th>`;
+    html += `
+      <th>
+        <input data-type="course" data-w="${w}" value="${courses[w] ?? ""}">
+      </th>
+    `;
   }
   html += "</tr>";
 
-  // --- SUB-HEADER (HC / TS) ---
-  html += "<tr><th></th><th></th>";
-  for (let w = 0; w < maxWeeks; w++) {
-    html += `<th>HC</th><th>TS</th>`;
-  }
+  // Header
+  html += "<tr><th>Player</th><th>HC (W)</th>";
+  for (let w = 1; w <= maxWeeks; w++) html += `<th>W${w}</th>`;
   html += "</tr>";
 
-  // --- PLAYER ROWS ---
+  // Player rows
   players.forEach((p, i) => {
-    html += `<tr><td>${p.name}</td><td></td>`;
+    html += `<tr><td>${p.name}</td>`;
+
+    html += `
+      <td>
+        <input data-type="handicap" data-i="${i}" data-w="LAST" 
+               value="${p.handicaps[p.handicaps.length - 1] ?? 0}">
+      </td>
+    `;
 
     for (let w = 0; w < maxWeeks; w++) {
-      const ts = p.scores[w] ?? "";
-      const hc = p.handicaps[w] ?? "";
-
-      const isDNP = ts === "DNP";
+      const s = p.scores[w] ?? "";
+      const h = p.handicaps[w] ?? "";
 
       html += `
         <td>
-          <input type="number"
-                 data-type="hc"
-                 data-i="${i}"
-                 data-w="${w}"
-                 value="${isDNP ? "" : hc}"
-                 ${isDNP ? "disabled" : ""}>
-        </td>
-
-        <td>
-          <select data-type="ts" data-i="${i}" data-w="${w}">
+          <select data-type="score" data-i="${i}" data-w="${w}">
             <option value="">—</option>
-            <option value="DNP" ${ts === "DNP" ? "selected" : ""}>DNP</option>
-            ${generateScoreOptions(ts)}
+            <option value="DNP" ${s === "DNP" ? "selected" : ""}>DNP</option>
+            ${generateScoreOptions(s)}
           </select>
         </td>
       `;
@@ -148,30 +130,20 @@ function renderAdmin() {
 
   html += "</table>";
 
-  // Add week button
-  html += `<button id="add-week-btn" style="margin-top:15px;">Add New Week</button>`;
-
+  html += `<button id="add-week-btn" style="margin-top:15px;">Add Week</button>`;
   container.innerHTML = html;
 
   document.getElementById("add-week-btn").onclick = addWeek;
-
-  attachDnpListeners();
 }
 
-// ------------------------------------------------------------
-// GENERATE SCORE OPTIONS
-// ------------------------------------------------------------
 function generateScoreOptions(current) {
-  let out = "";
+  let html = "";
   for (let n = 40; n <= 90; n++) {
-    out += `<option value="${n}" ${current == n ? "selected" : ""}>${n}</option>`;
+    html += `<option value="${n}" ${current == n ? "selected" : ""}>${n}</option>`;
   }
-  return out;
+  return html;
 }
 
-// ------------------------------------------------------------
-// ADD NEW WEEK
-// ------------------------------------------------------------
 function addWeek() {
   courses.push("");
   players.forEach(p => {
@@ -181,68 +153,71 @@ function addWeek() {
   renderAdmin();
 }
 
-// ------------------------------------------------------------
-// AUTO-DISABLE HC WHEN TS = DNP
-// ------------------------------------------------------------
-function attachDnpListeners() {
-  document.querySelectorAll('select[data-type="ts"]').forEach(sel => {
-    sel.addEventListener("change", e => {
-      const i = sel.dataset.i;
-      const w = sel.dataset.w;
-      const hcField = document.querySelector(`input[data-type="hc"][data-i="${i}"][data-w="${w}"]`);
-
-      if (sel.value === "DNP") {
-        hcField.value = "";
-        hcField.disabled = true;
-      } else {
-        hcField.disabled = false;
-      }
-    });
-  });
-}
-
-// ------------------------------------------------------------
-// SAVE CHANGES
-// ------------------------------------------------------------
+// ---------- PUBLISH ----------
 document.getElementById("publish-btn").addEventListener("click", () => {
-
-  // Courses
+  // Save course updates
   document.querySelectorAll("input[data-type='course']").forEach(el => {
     courses[Number(el.dataset.w)] = el.value;
   });
 
-  // Handicaps
-  document.querySelectorAll("input[data-type='hc']").forEach(el => {
+  // Save scores
+  document.querySelectorAll("select[data-type='score']").forEach(el => {
     const i = Number(el.dataset.i);
     const w = Number(el.dataset.w);
-    players[i].handicaps[w] = el.value === "" ? "" : Number(el.value);
+
+    const v = el.value;
+    players[i].scores[w] = (v === "" ? "" : v === "DNP" ? "DNP" : Number(v));
   });
 
-  // Scores
-  document.querySelectorAll("select[data-type='ts']").forEach(sel => {
-    const i = Number(sel.dataset.i);
-    const w = Number(sel.dataset.w);
-    const val = sel.value;
-
-    if (val === "") players[i].scores[w] = "";
-    else if (val === "DNP") players[i].scores[w] = "DNP";
-    else players[i].scores[w] = Number(val);
-  });
-
-  // Send JSON to backend
   fetch("save.php", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ players, courses })
-  })
-  .then(r => r.text())
-  .then(text => alert(text));
+  }).then(r => r.text()).then(alert);
 });
-</script>
 
-<!-- Summaries script unchanged -->
-<script>
-  /* (your summaries.js code goes here unchanged) */
+// ---------- RECOMPUTE HANDICAPS ----------
+document.getElementById("recompute-btn").addEventListener("click", () => {
+  recomputeHandicaps();
+  renderAdmin(); // Refresh UI
+});
+
+function recomputeHandicaps() {
+  players.forEach(p => {
+    const scores = p.scores;
+    const h = [];
+
+    for (let w = 0; w < scores.length; w++) {
+      if (w < 2) {
+        h.push(""); // Weeks 1–2 always empty
+        continue;
+      }
+
+      // Compute handicap based on previous 3 raw scores
+      const window = scores.slice(w - 3, w).filter(s => s !== "DNP" && s !== "" && !isNaN(s));
+
+      if (window.length < 3) {
+        h.push("");
+        continue;
+      }
+
+      const avg = window.reduce((a, b) => a + b, 0) / 3;
+      const raw = avg - 45;
+      const hc = Math.max(0, Math.floor(raw * 0.8));
+
+      h.push(hc);
+    }
+
+    p.handicaps = h;
+  });
+
+  // Save back to file
+  fetch("save.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ players, courses })
+  });
+}
 </script>
 
 </body>
