@@ -2,84 +2,80 @@
     "players": [
       {
         "name": "CJ Staugler",
-        "scores": [54, 49, 50],
-        "handicaps": [5, 5, 5]
+        "scores": [54, 49, 50, 48],
+        "handicaps": ["", "", 5, 3]
       },
       {
         "name": "Donny Sams",
-        "scores": [54, 59, 59],
-        "handicaps": [10, 10, 10]
+        "scores": [54, 59, 59, 55],
+        "handicaps": ["", "", 10, 7]
       },
       {
         "name": "Eric Sams",
-        "scores": [55, 55, 53],
-        "handicaps": [6, 6, 6]
+        "scores": [55, 55, 53, 50],
+        "handicaps": ["", "", 6, 5]
       },
       {
         "name": "Heath Coate",
-        "scores": [55, 55, 58],
-        "handicaps": [9, 9, 9]
+        "scores": [55, 55, 58, 58],
+        "handicaps": ["", "", 9, 7]
       },
       {
         "name": "Gabe Archer",
-        "scores": [58, 57, 54],
-        "handicaps": [9, 9, 9]
+        "scores": [58, 57, 54, 57],
+        "handicaps": ["", "", 9, 6]
       },
       {
         "name": "Chad Schmitmeyer",
-        "scores": [61, 60, 58],
-        "handicaps": [12, 12, 12]
+        "scores": [61, 60, 58, 58],
+        "handicaps": ["", "", 12, 8]
       },
       {
         "name": "Drew Braun",
-        "scores": [62, 57, 58],
-        "handicaps": [11, 11, 11]
+        "scores": [62, 57, 58, 52],
+        "handicaps": ["", "", 11, 6]
       },
       {
         "name": "Chicken",
-        "scores": [63, 58, 70],
-        "handicaps": [15, 15, 15]
+        "scores": [63, 58, 70, 61],
+        "handicaps": ["", "", 15, 11]
       },
       {
         "name": "Cory Hathaway",
-        "scores": [63, 57, 56],
-        "handicaps": [11, 11, 11]
+        "scores": [63, 57, 56, 55],
+        "handicaps": ["", "", 11, 6]
       },
       {
         "name": "Chip Alig",
-        "scores": [65, 75, 59],
-        "handicaps": [17, 17, 17]
+        "scores": [65, 75, 59, 67],
+        "handicaps": ["", "", 17, 9]
       },
       {
         "name": "Brian Monroe",
-        "scores": [66, 62, 57],
-        "handicaps": [14, 14, 14]
+        "scores": [66, 62, 57, 58],
+        "handicaps": ["", "", 14, 7]
       },
       {
         "name": "Zach Schlarman",
-        "scores": [76, 80, 71],
-        "handicaps": [25, 25, 25]
+        "scores": [76, 80, 71, "DNP"],
+        "handicaps": ["", "", 20, 20]
       },
       {
         "name": "Kyle Trazfer",
-        "scores": [77, 69, 79],
-        "handicaps": [24, 24, 24]
+        "scores": [77, 69, 79, 75],
+        "handicaps": ["", "", 24, 17]
       },
       {
         "name": "Adam Hulatt",
-        "scores": [60, 55, 62],
-        "handicaps": [11, 11, 11]
+        "scores": [60, 55, 62, 58],
+        "handicaps": ["", "", 11, 8]
       },
       {
         "name": "Nate Giesege",
-        "scores": [62, 55, "DNP"],
-        "handicaps": [0, 0, 0]
+        "scores": [62, 55, 57, 56],
+        "handicaps": ["", "", 10, 9]
       }
     ],
-    "courses": [
-      "Tundra Peaks",
-      "Bonnie Moor",
-      "Pine Coast"
-    ]
+    "courses": ["Tundra Peaks", "Bonnie Moor", "Pine Coast", "Missouri Hills"]
   }
   
