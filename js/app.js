@@ -94,7 +94,7 @@ function initialize() {
         out += `Average = (${w1} + ${w2} + ${w3}) / 3 = ${avg.toFixed(2)}\n`;
         out += `Above Par = avg - 45 = ${base.toFixed(2)}\n`;
         out += `80% = (avg - 45) × 0.8 = ${calc.toFixed(2)}\n`;
-        out += `Final Handicap = floor(max(0, ${calc.toFixed(2)})) = ${newHc}\n\n`;
+        out += `Final Handicap = round(max(0, ${calc.toFixed(2)})) = ${newHc}\n\n`;
       }
 
       // Weekly Net Breakdown
