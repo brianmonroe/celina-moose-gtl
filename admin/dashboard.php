@@ -203,7 +203,7 @@ function recomputeHandicaps() {
 
       const avg = window.reduce((a, b) => a + b, 0) / 3;
       const raw = avg - 45;
-      const hc = Math.max(0, Math.floor(raw * 0.8));
+      const hc = Math.max(0, Math.round(raw * 0.8));
 
       h.push(hc);
     }
