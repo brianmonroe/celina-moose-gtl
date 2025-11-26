@@ -12,17 +12,17 @@
     },
     {
       "name": "Eric Sams",
-      "scores": [55, 55, 53, 49],
+      "scores": [55, 55, 53, 50],
       "handicaps": ["", "", 5, 5]
     },
     {
       "name": "Heath Coate",
-      "scores": [55, 55, 58, 56],
+      "scores": [55, 55, 58, 58],
       "handicaps": ["", "", 7, 7]
     },
     {
       "name": "Gabe Archer",
-      "scores": [58, 57, 54, 54],
+      "scores": [58, 57, 54, 57],
       "handicaps": ["", "", 9, 6]
     },
     {
@@ -37,7 +37,7 @@
     },
     {
       "name": "Chicken",
-      "scores": [63, 58, 70, 57],
+      "scores": [63, 58, 70, 61],
       "handicaps": ["", "", 11, 11]
     },
     {
@@ -47,7 +47,7 @@
     },
     {
       "name": "Chip Alig",
-      "scores": [65, 75, 59, 59],
+      "scores": [65, 75, 59, 65],
       "handicaps": ["", "", 9, 9]
     },
     {
@@ -67,12 +67,12 @@
     },
     {
       "name": "Adam Hulatt",
-      "scores": [60, 55, 62, 55],
+      "scores": [60, 55, 62, 58],
       "handicaps": ["", "", 8, 8]
     },
     {
       "name": "Nate Giesege",
-      "scores": [62, 55, 66, 56],
+      "scores": [62, 55, 6657, 66],
       "handicaps": ["", "", 9, 9]
     }
   ],
