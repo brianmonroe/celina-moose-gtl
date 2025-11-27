@@ -18,7 +18,9 @@ function isMissingScore(s) {
   );
 }
 
-// Load data
+// ------------------------------------------------------------
+// Load JSON data
+// ------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
   fetch("data/players.json?_=" + Date.now())
     .then(r => r.json())
@@ -35,6 +37,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+// ------------------------------------------------------------
+// Determine latest completed week
+// ------------------------------------------------------------
 function getLatestCompletedWeek(players) {
   const weeks = Math.max(...players.map(p => p.scores.length));
   for (let w = weeks - 1; w >= 0; w--) {
@@ -45,13 +50,21 @@ function getLatestCompletedWeek(players) {
   return 1;
 }
 
+// ------------------------------------------------------------
+// Initialize page
+// ------------------------------------------------------------
 function initialize() {
   const standingsWeek = getLatestCompletedWeek(players);
 
   document.getElementById("page-title").textContent =
     `Week ${standingsWeek} Leaderboard`;
 
-  renderStandings();
+  // Enable dropdown sorting
+  document.getElementById("sort-mode").addEventListener("change", (e) => {
+    renderStandings(e.target.value);
+  });
+
+  renderStandings("net");
   renderSummary();
 
   // ------------------------------------------------------------
@@ -59,7 +72,7 @@ function initialize() {
   // ------------------------------------------------------------
   (function () {
     const params = new URLSearchParams(window.location.search);
-    if (!params.has("hc")) return; // only run if ?hc=1 in URL
+    if (!params.has("hc")) return;
 
     const debugBox = document.createElement("div");
     debugBox.id = "hc-debug";
@@ -79,7 +92,7 @@ function initialize() {
       out += `Scores: ${JSON.stringify(p.scores)}\n`;
       out += `Stored Handicaps: ${JSON.stringify(p.handicaps)}\n\n`;
 
-      // Week 3 calculation (first 3 weeks)
+      // Week 3 handicap calc preview
       if (p.scores.length >= 3) {
         const w1 = Number(p.scores[0]);
         const w2 = Number(p.scores[1]);
@@ -88,24 +101,32 @@ function initialize() {
         const avg = (w1 + w2 + w3) / 3;
         const base = avg - PAR;
         const calc = base * 0.8;
-        const newHc = Math.max(0, Math.floor(calc));
+        const newHc = Math.max(0, Math.round(calc));
 
         out += `--- Week 3 Handicap Formula ---\n`;
-        out += `Average = (${w1} + ${w2} + ${w3}) / 3 = ${avg.toFixed(2)}\n`;
+        out += `Average = (${w1}+${w2}+${w3}) / 3 = ${avg.toFixed(2)}\n`;
         out += `Above Par = avg - 45 = ${base.toFixed(2)}\n`;
         out += `80% = (avg - 45) × 0.8 = ${calc.toFixed(2)}\n`;
         out += `Final Handicap = round(max(0, ${calc.toFixed(2)})) = ${newHc}\n\n`;
       }
 
-      // Weekly Net Breakdown
-      out += "--- Weekly NET breakdown ---\n";
-      p.scores.forEach((s, w) => {
-        if (s === "DNP") {
+      // True applied NET breakdown
+      out += "--- Weekly NET breakdown (actual applied HC) ---\n";
+
+      p.scores.forEach((raw, w) => {
+        if (raw === "DNP") {
           out += `Week ${w+1}: DNP\n`;
-        } else {
-          const h = p.handicaps[w] ?? 0;
-          out += `Week ${w+1}: RAW ${s} - HC ${h} = NET ${s - h}\n`;
+          return;
         }
+
+        let appliedHC = 0;
+        if (w < 3) {
+          appliedHC = p.handicaps[2] ?? 0;
+        } else {
+          appliedHC = p.handicaps[w-1] ?? 0;
+        }
+
+        out += `Week ${w+1}: RAW ${raw} - HC ${appliedHC} = NET ${raw - appliedHC}\n`;
       });
 
       out += "\n-----------------------------------------\n\n";
@@ -114,32 +135,31 @@ function initialize() {
     debugBox.textContent = out;
     document.body.appendChild(debugBox);
   })();
+}
 
-} // ← END initialize()
-
-
-
-function renderStandings() {
+// ------------------------------------------------------------
+// Render standings table
+// ------------------------------------------------------------
+function renderStandings(sortBy = "net") {
   const tbody = document.getElementById("league-body");
 
   let list = players.map(p => {
-  let weeklyNet = p.scores.map((raw, w) => {
-    if (raw === "DNP") return "DNP";
+    let weeklyNet = p.scores.map((raw, w) => {
+      if (raw === "DNP") return "DNP";
 
-    // Retroactive Week 3 handicap for Weeks 1–3
-    if (w < 3) {
-      const week3HC = p.handicaps[2] ?? 0;
-      return raw - week3HC;
-    }
+      // Weeks 1–3: retro Week 3 handicap
+      if (w < 3) {
+        const week3HC = p.handicaps[2] ?? 0;
+        return raw - week3HC;
+      }
 
-    // Week N uses handicap from previous week (N-1)
-    const prevHC = p.handicaps[w - 1] ?? 0;
-    return raw - prevHC;
-  });
+      // Week N uses handicap from previous week
+      const prevHC = p.handicaps[w - 1] ?? 0;
+      return raw - prevHC;
+    });
 
-
-    let totalRaw = p.scores.reduce((acc, s) => (s === "DNP" ? acc : acc + s), 0);
-    let totalNet = weeklyNet.reduce((acc, s) => (s === "DNP" ? acc : acc + s), 0);
+    let totalRaw = p.scores.reduce((acc, s) => s === "DNP" ? acc : acc + s, 0);
+    let totalNet = weeklyNet.reduce((acc, s) => s === "DNP" ? acc : acc + s, 0);
 
     return {
       ...p,
@@ -150,18 +170,40 @@ function renderStandings() {
     };
   });
 
-  // Sort DNP last, then by total net
+  // ------------------------------------------------------------
+  // Sorting with tiebreakers
+  // ------------------------------------------------------------
   list.sort((a, b) => {
+    // 1. DNP last
     if (a.hasDNP && !b.hasDNP) return 1;
     if (!a.hasDNP && b.hasDNP) return -1;
-    return a.totalNet - b.totalNet;
+
+    if (sortBy === "total") {
+      return a.totalRaw - b.totalRaw;
+    }
+
+    // 2. NET sort
+    const netDiff = a.totalNet - b.totalNet;
+    if (netDiff !== 0) return netDiff;
+
+    // 3. Tiebreaker = lower final handicap wins
+    const aHC = a.handicaps[a.handicaps.length - 1] ?? 0;
+    const bHC = b.handicaps[b.handicaps.length - 1] ?? 0;
+
+    if (aHC !== bHC) return aHC - bHC;
+
+    // 4. Alphabetical fallback
+    return a.name.localeCompare(b.name);
   });
 
+  // ------------------------------------------------------------
+  // Render rows
+  // ------------------------------------------------------------
   tbody.innerHTML = list.map((p, i) => {
     const scores = p.scores.map((s, w) => {
       if (s === "DNP")
-        return `<div><strong>Week ${w + 1}:</strong> <span class="dnp">DNP</span></div>`;
-      return `<div><strong>Week ${w + 1}:</strong> ${s} (Net ${p.weeklyNet[w]})</div>`;
+        return `<div><strong>Week ${w+1}:</strong> <span class="dnp">DNP</span></div>`;
+      return `<div><strong>Week ${w+1}:</strong> ${s} (Net ${p.weeklyNet[w]})</div>`;
     }).join("");
 
     return `
@@ -190,6 +232,9 @@ function renderStandings() {
   });
 }
 
+// ------------------------------------------------------------
+// Weekly summary + awards
+// ------------------------------------------------------------
 function renderSummary() {
   if (!summaries.length) return;
 
