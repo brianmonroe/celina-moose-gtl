@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Golden Tee League – Printable Standings</title>
+
+<!-- Google Fonts (same as main site) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+  body {
+    background:#fff;
+    padding:30px;
+    font-family: "Open Sans", sans-serif;
+  }
+
+  h1 {
+    font-family: "Bangers", sans-serif;
+    font-size: 3rem;
+    color: #006400; /* league green */
+    letter-spacing: 2px;
+    text-align:center;
+    margin:0;
+    margin-bottom:5px;
+  }
+
+  h2 {
+    font-size:1.4rem;
+    text-align:center;
+    margin:0;
+    color:#333;
+    font-weight:600;
+  }
+
+  table {
+    width:100%;
+    border-collapse: collapse;
+    margin-top:25px;
+    font-size:14px;
+  }
+
+  th, td {
+    border:1px solid #ccc;
+    padding:6px;
+    text-align:center;
+  }
+
+  th {
+    background:#eee;
+    font-weight:700;
+  }
+
+  /* Landscape print */
+  @page {
+    size: landscape;
+    margin: 12mm;
+  }
+
+  @media print {
+    body { padding:0; }
+    a, #qr-section { display:none; }
+  
+
+/* Force landscape */
+  @page {
+    size: landscape;
+    margin: 0.5in;
+  }
+
+  /* Ensure QR wrapper prints */
+  #qr-section {
+    display: block !important;
+    break-before: page;
+    page-break-before: always;
+    text-align: center;
+    margin-top: 40px;
+  }
+
+  #qr-section h2 {
+    font-family: "Bangers", sans-serif;
+    color: #006400;
+    margin-bottom: 10px;
+  }
+
+  #qr-code {
+    display: block !important;
+    width: 300px !important;
+    height: 300px !important;
+    margin: 0 auto;
+  }
+
+  /* Ensure images always print */
+  img {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Prevent page breaks inside the grid */
+  .player-grid {
+    page-break-inside: avoid;
+  }
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Celina Moose Golden Tee Golf League</h1>
+<h2 id="print-week-label">Loading…</h2>
+
+<table id="print-standings">
+  <thead id="print-head"></thead>
+  <tbody id="print-body"></tbody>
+</table>
+
+<!-- QR section -->
+<div id="qr-section">
+  <img id="qr-code" alt="QR Code to League Site">
+  <p>Scan for live standings and weekly news</p>
+</div>
+
+<script src="js/print.js?v=3"></script>
+
+</body>
+</html>

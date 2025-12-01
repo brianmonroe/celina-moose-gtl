@@ -16,6 +16,11 @@ body {
   }
 }
 
+a {
+    color: #006400; /* your league green */
+    font-weight: bold;
+}
+
 .container {
   position: relative;
   z-index: 5;
