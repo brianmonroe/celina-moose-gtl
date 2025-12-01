@@ -248,40 +248,54 @@ function recomputeHandicaps() {
   const PAR = 45;
 
   players.forEach(p => {
-    const scores = p.scores;
-    const newHC = [];
+    // Make sure handicaps array exists and has same length as scores
+    if (!Array.isArray(p.handicaps)) {
+      p.handicaps = p.scores.map(() => "");
+    } else if (p.handicaps.length < p.scores.length) {
+      while (p.handicaps.length < p.scores.length) {
+        p.handicaps.push("");
+      }
+    }
 
-    for (let w = 0; w < scores.length; w++) {
+    for (let w = 0; w < p.scores.length; w++) {
       // Weeks 1 & 2: always blank
       if (w < 2) {
-        newHC.push("");
+        if (p.handicaps[w] === undefined) {
+          p.handicaps[w] = "";
+        }
         continue;
       }
 
-      // Use the *previous 3 weeks including this week*:
-      // handicap for Week (w+1) uses weeks (w-1, w, w+1) in league terms,
-      // but since our index is zero-based, window = scores[w-2..w]
-      const window = scores
+      // If this week already has a handicap, DO NOT CHANGE IT
+      const existing = p.handicaps[w];
+      if (existing !== "" && existing !== null && !isNaN(existing)) {
+        continue;
+      }
+
+      // Handicap for week (w+1) is based on the previous 3 rounds
+      // (weeks w-1, w, w+1 in league terms, but indices w-2..w)
+      const window = p.scores
         .slice(w - 2, w + 1)
         .filter(s => s !== "DNP" && s !== "" && !isNaN(s));
 
+      // Need 3 valid raw scores
       if (window.length < 3) {
-        newHC.push("");
+        p.handicaps[w] = "";
         continue;
       }
 
       const avg = (window[0] + window[1] + window[2]) / 3;
       const abovePar = avg - PAR;
-      const raw = abovePar * 0.8;
-      const hc = Math.max(0, Math.round(raw));  // league rule: round, floor at 0
+      const rawHc = abovePar * 0.8;
 
-      newHC.push(hc);
+      // League rule: round to nearest whole number, never below 0
+      const finalHC = Math.max(0, Math.round(rawHc));
+
+      p.handicaps[w] = finalHC;
     }
-
-    p.handicaps = newHC;
   });
 
-  // Persist to file
+  // Save to file
   fetch("save.php", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

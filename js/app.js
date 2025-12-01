@@ -67,12 +67,14 @@ function initialize() {
   renderStandings("net");
   renderSummary();
 
-  // ------------------------------------------------------------
+    // ------------------------------------------------------------
   // HANDICAP DEBUG MODE (?hc=1)
+  // Shows formula for the *latest* handicap week (3, 4, 5, …)
+  // and the actual applied HC per week.
   // ------------------------------------------------------------
   (function () {
     const params = new URLSearchParams(window.location.search);
-    if (!params.has("hc")) return;
+    if (!params.has("hc")) return; // only run if ?hc=1 in URL
 
     const debugBox = document.createElement("div");
     debugBox.id = "hc-debug";
@@ -92,41 +94,71 @@ function initialize() {
       out += `Scores: ${JSON.stringify(p.scores)}\n`;
       out += `Stored Handicaps: ${JSON.stringify(p.handicaps)}\n\n`;
 
-      // Week 3 handicap calc preview
-      if (p.scores.length >= 3) {
+      // ---- Latest handicap formula (Week N) ----
+      const hcIndex = (() => {
+        const arr = p.handicaps || [];
+        for (let i = arr.length - 1; i >= 0; i--) {
+          const h = arr[i];
+          if (h !== "" && h !== null && !isNaN(h)) return i;
+        }
+        return -1;
+      })();
+
+      if (hcIndex >= 2) {
+        const start = hcIndex - 2;              // sliding window of 3 weeks
+        const windowScores = p.scores
+          .slice(start, hcIndex + 1)
+          .map(Number);
+
+        const avg =
+          windowScores.reduce((a, b) => a + b, 0) / windowScores.length;
+        const abovePar = avg - PAR;
+        const calc = abovePar * 0.8;
+        const newHc = Math.max(0, Math.round(calc));
+
+        out += `--- Handicap Formula for Week ${hcIndex + 1} ---\n`;
+        out += `Using weeks ${start + 1}–${hcIndex + 1} scores: ${windowScores.join(", ")}\n`;
+        out += `Average = ${avg.toFixed(2)}\n`;
+        out += `Above Par = avg - 45 = ${abovePar.toFixed(2)}\n`;
+        out += `80% = (avg - 45) × 0.8 = ${calc.toFixed(2)}\n`;
+        out += `Final Handicap = round(max(0, ${calc.toFixed(2)})) = ${newHc}\n\n`;
+      } else if (p.scores.length >= 3) {
+        // Fallback: if no handicaps are stored yet, show the "first" one (Week 3)
         const w1 = Number(p.scores[0]);
         const w2 = Number(p.scores[1]);
         const w3 = Number(p.scores[2]);
-
         const avg = (w1 + w2 + w3) / 3;
-        const base = avg - PAR;
-        const calc = base * 0.8;
+        const abovePar = avg - PAR;
+        const calc = abovePar * 0.8;
         const newHc = Math.max(0, Math.round(calc));
 
-        out += `--- Week 3 Handicap Formula ---\n`;
-        out += `Average = (${w1}+${w2}+${w3}) / 3 = ${avg.toFixed(2)}\n`;
-        out += `Above Par = avg - 45 = ${base.toFixed(2)}\n`;
+        out += `--- First Handicap Formula (Week 3) ---\n`;
+        out += `Using weeks 1–3 scores: ${w1}, ${w2}, ${w3}\n`;
+        out += `Average = ${avg.toFixed(2)}\n`;
+        out += `Above Par = avg - 45 = ${abovePar.toFixed(2)}\n`;
         out += `80% = (avg - 45) × 0.8 = ${calc.toFixed(2)}\n`;
         out += `Final Handicap = round(max(0, ${calc.toFixed(2)})) = ${newHc}\n\n`;
       }
 
-      // True applied NET breakdown
-      out += "--- Weekly NET breakdown (actual applied HC) ---\n";
+      // ---- Weekly NET breakdown using ACTUAL applied HC ----
+      out += "--- Weekly NET breakdown (applied HC) ---\n";
 
       p.scores.forEach((raw, w) => {
         if (raw === "DNP") {
-          out += `Week ${w+1}: DNP\n`;
+          out += `Week ${w + 1}: DNP\n`;
           return;
         }
 
         let appliedHC = 0;
         if (w < 3) {
+          // Weeks 1–3 use Week 3 HC
           appliedHC = p.handicaps[2] ?? 0;
         } else {
-          appliedHC = p.handicaps[w-1] ?? 0;
+          // Week N uses HC from previous week (N-1)
+          appliedHC = p.handicaps[w - 1] ?? 0;
         }
 
-        out += `Week ${w+1}: RAW ${raw} - HC ${appliedHC} = NET ${raw - appliedHC}\n`;
+        out += `Week ${w + 1}: RAW ${raw} - HC ${appliedHC} = NET ${raw - appliedHC}\n`;
       });
 
       out += "\n-----------------------------------------\n\n";
