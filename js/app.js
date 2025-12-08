@@ -1,5 +1,5 @@
 //------------------------------------------------------------
-// GTL FRONTEND — Per-Week Handicap Version
+// GTL FRONTEND — Per-Week Handicap Version (WITH 80% RULE)
 //------------------------------------------------------------
 
 let players = [];
@@ -94,18 +94,18 @@ function initialize() {
 
       let handicaps = [];
 
-      // --- Week 3 HC (RAW scores)
+      // --- Week 3 Handicap (RAW, 80% rule)
       if (scores.length >= 3 && scores[0] !== null && scores[1] !== null && scores[2] !== null) {
         const avg = (scores[0] + scores[1] + scores[2]) / 3;
         handicaps[2] = Math.max(0, Math.round((avg - PAR) * 0.8));
 
-        out += `--- Handicap Formula for Week 3 ---\n`;
-        out += `Using RAW: ${scores[0]}, ${scores[1]}, ${scores[2]}\n`;
-        out += `Avg = ${avg.toFixed(2)} | Abv Par = ${(avg - PAR).toFixed(2)}\n`;
+        out += `--- Handicap Formula Week 3 ---\n`;
+        out += `RAW: ${scores[0]}, ${scores[1]}, ${scores[2]}\n`;
+        out += `Avg = ${avg.toFixed(2)} | AbvPar = ${(avg - PAR).toFixed(2)}\n`;
         out += `HC = ${handicaps[2]}\n\n`;
       }
 
-      // --- Weeks 4+
+      // --- Weeks 4+ (NET-window, 80% rule)
       for (let w = 3; w < scores.length; w++) {
         let tempNet = [];
 
@@ -129,7 +129,7 @@ function initialize() {
         }
 
         const avg = (a + b + c) / 3;
-        const hc = Math.max(0, Math.round((avg - PAR) * 0.8));
+        const hc = Math.max(0, Math.round((avg - 45) * 0.8));
         handicaps[w] = hc;
 
         out += `--- Handicap Formula Week ${w + 1} ---\n`;
@@ -137,7 +137,7 @@ function initialize() {
         out += `Avg NET=${avg.toFixed(2)} | HC=${hc}\n\n`;
       }
 
-      // --- Weekly Net Breakdown
+      // --- Weekly Nets
       out += "--- Weekly NET Breakdown ---\n";
 
       for (let w = 0; w < scores.length; w++) {
@@ -145,8 +145,11 @@ function initialize() {
           out += `Week ${w + 1}: DNP\n`;
           continue;
         }
+
         let appliedHC = (w < 3) ? (handicaps[2] ?? 0) : (handicaps[w - 1] ?? 0);
-        out += `Week ${w + 1}: RAW ${scores[w]} - HC ${appliedHC} = NET ${scores[w] - appliedHC}\n`;
+        const net = scores[w] - appliedHC;
+
+        out += `Week ${w + 1}: RAW ${scores[w]} - HC ${appliedHC} = NET ${net}\n`;
       }
 
       out += `\n-----------------------------------------\n\n`;
@@ -156,6 +159,7 @@ function initialize() {
     document.body.appendChild(debugBox);
   })();
 }
+
 // ------------------------------------------------------------
 // Render standings table
 // ------------------------------------------------------------
@@ -168,13 +172,17 @@ function renderStandings(sortBy = "net") {
     const scores = p.scores.map(s => s === "DNP" ? null : Number(s));
     let handicaps = [];
 
-    // --- Week 3 Handicap
+    // ----------------------------
+    // Week 3 (RAW, 80% rule)
+    // ----------------------------
     if (scores.length >= 3 && scores[0] !== null && scores[1] !== null && scores[2] !== null) {
       const avg = (scores[0] + scores[1] + scores[2]) / 3;
       handicaps[2] = Math.max(0, Math.round((avg - PAR) * 0.8));
     }
 
-    // --- Weeks 4+
+    // ----------------------------
+    // Weeks 4+ (NET sliding window, 80% rule)
+    // ----------------------------
     for (let w = 3; w < scores.length; w++) {
       let tempNet = [];
 
@@ -197,20 +205,23 @@ function renderStandings(sortBy = "net") {
       }
 
       const avg = (a + b + c) / 3;
-      handicaps[w] = Math.max(0, Math.round((avg - PAR) * 0.8));
+      handicaps[w] = Math.max(0, Math.round((avg - 45) * 0.8));
     }
 
-    // --- Final Weekly Net Scores
+    // ----------------------------
+    // Weekly NET scores
+    // ----------------------------
     let weeklyNet = scores.map((raw, w) => {
       if (raw === null) return "DNP";
-
       let appliedHC = (w < 3)
         ? (handicaps[2] ?? 0)
         : (handicaps[w - 1] ?? 0);
-
       return raw - appliedHC;
     });
 
+    // ----------------------------
+    // Totals
+    // ----------------------------
     const totalRaw = scores.reduce((a, s) => s === null ? a : a + s, 0);
     const totalNet = weeklyNet.reduce((a, s) => s === "DNP" ? a : a + s, 0);
 
