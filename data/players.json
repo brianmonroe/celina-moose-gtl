@@ -1,1 +1,185 @@
-{"players":[{"name":"CJ Staugler","scores":[54,49,50,48,51,55],"handicaps":["","",5,3,4,5]},{"name":"Donny Sams","scores":[54,59,59,55,54,53],"handicaps":["","",10,7,9,7]},{"name":"Eric Sams","scores":[55,55,53,50,54,58],"handicaps":["","",6,5,6,7]},{"name":"Heath Coate","scores":[55,55,58,58,52,55],"handicaps":["","",9,7,9,8]},{"name":"Gabe Archer","scores":[58,57,54,57,55,57],"handicaps":["","",9,6,8,9]},{"name":"Chad Schmitmeyer","scores":[61,60,58,58,57,61],"handicaps":["","",12,8,10,11]},{"name":"Drew Braun","scores":[62,57,58,52,57,57],"handicaps":["","",11,6,9,8]},{"name":"Chicken","scores":[63,58,70,61,62,74],"handicaps":["","",15,11,15,17]},{"name":"Cory Hathaway","scores":[63,57,56,55,53,54],"handicaps":["","",11,6,8,7]},{"name":"Chip Alig","scores":[65,75,59,67,67,64],"handicaps":["","",17,9,15,17]},{"name":"Brian Monroe","scores":[66,62,57,58,59,67],"handicaps":["","",14,7,10,13]},{"name":"Zach Schlarman","scores":[76,80,71,90,67,82],"handicaps":["","",20,28,25,28]},{"name":"Kyle Trazfer","scores":[77,69,79,75,73,85],"handicaps":["","",24,17,25,26]},{"name":"Adam Hulatt","scores":[60,55,62,58,53,62],"handicaps":["","",11,8,10,10]},{"name":"Nate Giesege","scores":[62,55,57,56,60,64],"handicaps":["","",10,9,10,12]}],"courses":["Tundra Peaks","Bonnie Moor","Pine Coast","Missouri Hills","Bonnie Moore Black","GT Champ 99"]}
+{
+    "players": [
+      {
+        "name": "CJ Staugler",
+        "scores": [
+          54,
+          49,
+          50,
+          48,
+          51,
+          55
+        ]
+      },
+      {
+        "name": "Donny Sams",
+        "scores": [
+          54,
+          59,
+          59,
+          55,
+          54,
+          53
+        ]
+      },
+      {
+        "name": "Eric Sams",
+        "scores": [
+          55,
+          55,
+          53,
+          50,
+          54,
+          58
+        ]
+      },
+      {
+        "name": "Heath Coate",
+        "scores": [
+          55,
+          55,
+          58,
+          58,
+          52,
+          55
+        ]
+      },
+      {
+        "name": "Gabe Archer",
+        "scores": [
+          58,
+          57,
+          54,
+          57,
+          55,
+          57
+        ]
+      },
+      {
+        "name": "Chad Schmitmeyer",
+        "scores": [
+          61,
+          60,
+          58,
+          58,
+          57,
+          61
+        ]
+      },
+      {
+        "name": "Drew Braun",
+        "scores": [
+          62,
+          57,
+          58,
+          52,
+          57,
+          57
+        ],
+        "handicaps": [
+          "",
+          "",
+          11,
+          6,
+          9,
+          8
+        ]
+      },
+      {
+        "name": "Chicken",
+        "scores": [
+          63,
+          58,
+          70,
+          61,
+          62,
+          74
+        ]
+      },
+      {
+        "name": "Cory Hathaway",
+        "scores": [
+          63,
+          57,
+          56,
+          55,
+          53,
+          54
+        ]
+      },
+      {
+        "name": "Chip Alig",
+        "scores": [
+          65,
+          75,
+          59,
+          67,
+          67,
+          64
+        ]
+      },
+      {
+        "name": "Brian Monroe",
+        "scores": [
+          66,
+          62,
+          57,
+          58,
+          59,
+          67
+        ]
+      },
+      {
+        "name": "Zach Schlarman",
+        "scores": [
+          76,
+          80,
+          71,
+          90,
+          67,
+          82
+        ]
+      },
+      {
+        "name": "Kyle Trazfer",
+        "scores": [
+          77,
+          69,
+          79,
+          75,
+          73,
+          85
+        ]
+      },
+      {
+        "name": "Adam Hulatt",
+        "scores": [
+          60,
+          55,
+          62,
+          58,
+          53,
+          62
+        ]
+      },
+      {
+        "name": "Nate Giesege",
+        "scores": [
+          62,
+          55,
+          57,
+          56,
+          60,
+          64
+        ]
+      }
+    ],
+    "courses": [
+      "Tundra Peaks",
+      "Bonnie Moor",
+      "Pine Coast",
+      "Missouri Hills",
+      "Bonnie Moore Black",
+      "GT Champ 99"
+    ]
+  }

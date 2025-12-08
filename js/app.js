@@ -92,7 +92,7 @@ function initialize() {
     players.forEach((p) => {
       out += `PLAYER: ${p.name}\n`;
       out += `Scores: ${JSON.stringify(p.scores)}\n`;
-      out += `Stored Handicaps: ${JSON.stringify(p.handicaps)}\n\n`;
+      out += `(Recalculated Handicaps: Generated on load)\n\n`;
 
       // ---- Latest handicap formula (Week N) ----
       const hcIndex = (() => {
@@ -181,6 +181,9 @@ function renderStandings(sortBy = "net") {
     // 1. Build weekly NET array properly
     // ---------------------------------------
 
+      // RESET stored handicaps – always recompute new system
+      p.handicaps = [];
+    
     let weeklyNet = [];
 
     for (let w = 0; w < p.scores.length; w++) {
