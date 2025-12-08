@@ -67,7 +67,7 @@ function initialize() {
   renderStandings("net");
   renderSummary();
 
-    // ------------------------------------------------------------
+  // ------------------------------------------------------------
   // HANDICAP DEBUG MODE (?hc=1)
   // Shows formula for the *latest* handicap week (3, 4, 5, …)
   // and the actual applied HC per week.
@@ -176,20 +176,76 @@ function renderStandings(sortBy = "net") {
   const tbody = document.getElementById("league-body");
 
   let list = players.map(p => {
-    let weeklyNet = p.scores.map((raw, w) => {
-      if (raw === "DNP") return "DNP";
 
-      // Weeks 1–3: retro Week 3 handicap
-      if (w < 3) {
-        const week3HC = p.handicaps[2] ?? 0;
-        return raw - week3HC;
+    // ---------------------------------------
+    // 1. Build weekly NET array properly
+    // ---------------------------------------
+
+    let weeklyNet = [];
+
+    for (let w = 0; w < p.scores.length; w++) {
+
+      let raw = p.scores[w];
+      if (raw === "DNP") {
+        weeklyNet[w] = "DNP";
+        continue;
       }
 
-      // Week N uses handicap from previous week
-      const prevHC = p.handicaps[w - 1] ?? 0;
-      return raw - prevHC;
-    });
+      let appliedHC = 0;
 
+      if (w === 0 || w === 1 || w === 2) {
+        // Weeks 1–3: no HC applied until Week 3 HC exists
+        appliedHC = p.handicaps[2] ?? 0;
+        weeklyNet[w] = raw - appliedHC;
+        continue;
+      }
+
+      // Week N uses handicap from week N-1
+      appliedHC = p.handicaps[w - 1] ?? 0;
+      weeklyNet[w] = raw - appliedHC;
+    }
+
+    // ---------------------------------------
+    // 2. Recalculate handicaps correctly 
+    //    using SLIDING WINDOW of NET SCORES
+    // ---------------------------------------
+
+    const PAR = 45;
+    let calcHC = [];
+
+    // First official HC after Week 3: use raw scores 1–3
+    if (p.scores.length >= 3) {
+      const w1 = Number(p.scores[0]);
+      const w2 = Number(p.scores[1]);
+      const w3 = Number(p.scores[2]);
+      const avg = (w1 + w2 + w3) / 3;
+      const abovePar = avg - PAR;
+      calcHC[2] = Math.max(0, Math.round(abovePar * 0.8));
+    }
+
+    // Sliding window for all weeks 4+
+    for (let w = 3; w < p.scores.length; w++) {
+
+      const a = weeklyNet[w - 3];
+      const b = weeklyNet[w - 2];
+      const c = weeklyNet[w - 1];
+
+      if (a === "DNP" || b === "DNP" || c === "DNP") {
+        calcHC[w] = calcHC[w - 1] ?? 0;
+        continue;
+      }
+
+      const avg = (a + b + c) / 3;
+      const abovePar = avg - PAR;
+      calcHC[w] = Math.max(0, Math.round(abovePar * 0.8));
+    }
+
+    // Replace stored handicaps with the corrected ones
+    p.handicaps = calcHC;
+
+    // ---------------------------------------
+    // 3. Compute totals normally
+    // ---------------------------------------
     let totalRaw = p.scores.reduce((acc, s) => s === "DNP" ? acc : acc + s, 0);
     let totalNet = weeklyNet.reduce((acc, s) => s === "DNP" ? acc : acc + s, 0);
 
@@ -201,6 +257,7 @@ function renderStandings(sortBy = "net") {
       hasDNP: p.scores.includes("DNP")
     };
   });
+
 
   // ------------------------------------------------------------
   // Sorting with tiebreakers
@@ -234,8 +291,8 @@ function renderStandings(sortBy = "net") {
   tbody.innerHTML = list.map((p, i) => {
     const scores = p.scores.map((s, w) => {
       if (s === "DNP")
-        return `<div><strong>Week ${w+1}:</strong> <span class="dnp">DNP</span></div>`;
-      return `<div><strong>Week ${w+1}:</strong> ${s} (Net ${p.weeklyNet[w]})</div>`;
+        return `<div><strong>Week ${w + 1}:</strong> <span class="dnp">DNP</span></div>`;
+      return `<div><strong>Week ${w + 1}:</strong> ${s} (Net ${p.weeklyNet[w]})</div>`;
     }).join("");
 
     return `
